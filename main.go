@@ -49,17 +49,20 @@ func printUserInformation(token string) {
 func main() {
   var clientId string
   var clientSecret string
-  var tenant string
   var token string
+  var delayInSeconds int
+  var csvFile string
 
   flag.StringVar(&clientId, "client_id", "", "Client id")
   flag.StringVar(&clientSecret, "client_secret", "", "Client secret")
+  flag.StringVar(&csvFile, "csv", "", "CSV file with email address and messages")
+  flag.IntVar(&delayInSeconds, "delay_in_seconds", 60, "Delay in between mails (Optional)")
   flag.StringVar(&token, "token", "", "Token (Optional)")
 
   flag.Parse()
 
-  if clientSecret == "" || clientId == "" {
-    fmt.Printf("Error: Required flags are missing %s %s %s !\n", clientId, clientSecret, tenant)
+  if clientSecret == "" || clientId == "" || csvFile == "" {
+    fmt.Printf("Error: Required flags are missing %s %s %s !\n", clientId, clientSecret, csvFile)
     flag.PrintDefaults()
     os.Exit(1)
   }
@@ -75,8 +78,19 @@ func main() {
   fmt.Println("================")
   fmt.Println("Token: ", token)
   fmt.Println("================")
-  // printUserInformation(token)
-  SendMail(token, "12tanmayvijay@gmail.com", "Test message from script", "Hello world", time.Now().Format(time.RFC3339))
+  printUserInformation(token)
+
+  var lastMailTime = time.Now()
+  for _, record := range ReadCSVFile(csvFile) {
+    var sendTime string
+    if record.Timestamp != "" {
+      sendTime = record.Timestamp
+    } else {
+      lastMailTime = lastMailTime.Add(time.Second * time.Duration(delayInSeconds))
+      sendTime = lastMailTime.Format(time.RFC3339)
+    }
+    SendMail(token, record.Email, record.Subject, record.Body, sendTime)
+  }
 }
 
 

@@ -104,8 +104,6 @@ func GetTokenFromCode(clientId string, clientSecret string, code string) string 
     return ""
   }
   return tokenResponse.AccessToken
-
-  return ""
 }
 
 func SendMail(token string, to string, subject string, body string, delayedTimeUtc string) {
@@ -134,6 +132,7 @@ func SendMail(token string, to string, subject string, body string, delayedTimeU
     "saveToSentItems": "true"
   }
   `, subject, body, to, delayedTimeUtc)
+  fmt.Printf("Sending to %s: %s at %s \n", to, subject, delayedTimeUtc)
   SendMailRaw(token, json_message)
 }
 
